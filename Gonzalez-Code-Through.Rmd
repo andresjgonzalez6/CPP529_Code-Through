@@ -1,0 +1,238 @@
+---
+title: "Code Through: rtweet, Twitter Stats in R"
+author: "Andres Gonzalez"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:
+    df_print: paged
+    theme: united
+    highlight: haddock
+    toc: yes
+    toc_float: yes
+---
+
+
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      message = FALSE, 
+                      warning = FALSE)
+
+library(tidyr)
+library(dplyr)
+library(pander)
+
+library(rtweet)
+library(ggplot2)
+library(pandocfilters)
+
+options(sci = 999)
+
+```
+
+<br>
+
+# Welcome to rtweet 
+
+Have you ever wanted to access Twitter stats in your R Markdown files? 
+<br>
+Of course you have! 
+
+
+<br>
+
+# What Is "rtweet"?
+
+This package allows you to collect Twitter data through their REST and stream API.
+
+<br>
+
+For sake of demonstration, we will use three functions. 
+
+<br> 
+
+1. search_tweets()
+2. stream_tweets()
+3. get_trends()
+4. get_favorites()
+
+<br>
+
+## Installing & Loading 
+
+You can install "rtweet" with function 'install.packages()' and load it with 'library()'.
+For visualization, we will use ggplot2.
+ 
+
+```{r eval = FALSE}
+
+install.packages("rtweet")
+library(rtweet)
+library(gglot2)
+
+```
+
+<br>
+
+## Search for tweets by hashtag
+
+Lets search for tweets with #datascience
+
+**NOTE: You need a Twitter account to use this, it will automatically sign into the Twitter API from your browser when you first try to access.**
+
+**NOTE 2: If you want to use more advanced features like this, you have to sign up and request user credentials from Twitter's developer program.**
+
+*[Twitter Dev Tools Application](https://developer.twitter.com/en/apply-for-access)
+
+``` {r eval=FALSE}
+
+## search for 1000 tweets using the datascience hashtag
+rt <- search_tweets(
+  "#datascience", n = 1000, include_rts = FALSE
+)
+
+## preview tweets data
+rt
+
+## preview users data
+users_data(rt)
+
+## plot time series (need ggplot2)
+ts_plot(rt)
+```
+
+
+  <img src="SearchTweets.png"/>
+
+
+
+```{r eval=FALSE}
+## plot time series of tweets
+ts_plot(rt, "3 hours") +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(plot.title = ggplot2::element_text(face = "bold")) +
+  ggplot2::labs(
+    x = NULL, y = NULL,
+    title = "Frequency of #datascience Twitter statuses in past 9 days",
+    subtitle = "Status tweet counts aggregated with three-hour intervals",
+    caption = "\nSource: Data collected with Twitter's REST API using rtweet package"
+  )
+
+
+
+```
+
+
+  <img src="status.png"/>
+
+
+
+<br>
+
+This function is best used to gather and aggregate data. There is a search limit cap of 18,000 every 15 minutes, you can change this limit. 
+
+<br>
+
+Use ' retryonratelimit = TRUE ' to search beyond 18k cap. 
+
+```{r eval = FALSE}
+
+## search for 250,000 tweets containing the word data
+rt <- search_tweets(
+  "data", n = 250000, retryonratelimit = TRUE
+)
+
+```
+
+<br>
+
+## Function: stream_tweets()
+
+Get a random 1% sample of live tweets. The "" symbol will sample all tweets. I like ' lookup_coords("phoenix, us") ' to stream by geography. 
+
+``` {r eval=FALSE}
+
+## stream tweets from london for 60 seconds
+rt <- stream_tweets(lookup_coords("phoenix, us"), timeout = 15)
+
+```
+
+<br>
+
+This is pretty powerful, we can save this stream as a .json object and now we have a dataset. 
+
+```{r eval = FALSE}
+
+## stream london tweets for a week (60 secs x 60 mins * 24 hours *  7 days)
+stream_tweets(
+  lookup_coords("phoenix, us"),
+  timeout = 15,
+  file_name = "phoenixtempetweets.json",
+  parse = FALSE
+)
+
+## read in the data as a tidy tbl data frame
+ptt <- parse_stream("phoenixtempetweets.json")
+
+```
+
+  <img src="streaming.png"/>
+
+
+<br> 
+
+## Function : get_trends()
+
+This is a simple one, collect the trend from a location and view it as a dataframe. 
+
+```{r eval = FALSE}
+
+phx <- get_trends("phoenix")
+
+phx
+
+```
+
+  <img src="trending.png"/>
+
+
+
+<br> 
+
+
+##Function : get_favorites()
+
+```{r eval = FALSE}
+
+sd <- get_favorites("SunDevilWBB", n = 100)
+
+sd
+
+```
+
+  <img src="trending.png"/>
+
+
+
+<br>
+
+
+# Discussion 
+
+This package is a powerful tool to leverage Twitter's API. We can bring those Twitter API responses into R to use for analysis. 
+
+There is an official R package named "twitteR" that is more robust that this open-sourced package shown in this Code-Through. This is where developers go to use Twitter's API with their official credentials to integrate with their own applications. I chose to use "rtweet" because it does not require credentials to receive responses for simple commands. 
+
+<br>
+
+# Further Resources 
+
+View the following materials to learn more about package "rtweet". 
+
+* [**GitHub Documentation**](https://github.com/ropensci/rtweet)
+
+
+
+
+
+
+
